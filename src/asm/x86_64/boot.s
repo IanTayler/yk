@@ -13,7 +13,16 @@ header_start:
 header_end:
 
 .global start
+.extern enable_a20
 
 .section .text
 start:
+    # Set up the stack
+    movl stack_top, %esp
     hlt
+
+.section .bss
+stack_bottom:
+    # Revise the stack size.
+    .skip 64
+stack_top:

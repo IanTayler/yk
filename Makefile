@@ -10,7 +10,15 @@ ISODIR := $(BASEBUILD)/iso
 
 CC := clang
 # Fix -march to be handled automatically.
-CFLAGS := --target=$(ARCH)-elf -march=x86-64 -ffreestanding -c
+ASMFLAGS := --target=$(ARCH)-elf -march=x86-64 -c
+
+STAGE ?= debug
+
+ifeq ($(STAGE),debug)
+ASMFLAGS := $(ASMFLAGS) -g
+endif
+
+CFLAGS := $(ASMFLAGS) -ffreestanding
 
 ASM_SRCDIR := src/asm/$(ARCH)
 C_SRCDIR := src/
@@ -36,12 +44,16 @@ grubcfg := cfg/grub.cfg
 LD := ld
 LDFLAGS := -n -T $(linkscript)
 
-.PHONY: all clean iso run
+.PHONY: all clean iso run debug
 
 all: $(KERNEL)
 
 run: $(ISO)
-	qemu-system-x86_64 -cdrom $(ISO)
+	qemu-system-x86_64 -cdrom $(ISO) -m 512
+
+debug: $(ISO)
+	qemu-system-x86_64 -cdrom $(ISO) -m 512 -s -S &
+	gdb $(ISODIR)/boot/yk.bin -x debug.gdb
 
 $(KERNEL): $(linkscript) $(ALL_OBJECTS)
 	mkdir -p $(ISODIR)
@@ -60,7 +72,7 @@ clean:
 
 $(OBJDIR)/asm/%.o: $(ASM_SRCDIR)/%.s
 	mkdir -p $(shell dirname $@)
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(ASMFLAGS) $< -o $@
 
 $(OBJDIR)/c/%.o: $(C_SRCDIR)/%.c
 	mkdir -p $(shell dirname $@)

@@ -24,8 +24,23 @@ check_a20:
     ret
 .code16
 enable_a20_bios:
-    movb $'E', %al
-    call __spitredchar
+# Code for seta20.1 and seta20.2 taken from xv6.
+seta20.1:
+    inb     $0x64,%al
+    testb   $0x2,%al
+    jnz     seta20.1
+    movb    $0xd1,%al
+    outb    %al,$0x64
+seta20.2:
+    inb     $0x64,%al
+    testb   $0x2,%al
+    jnz     seta20.2
+    movb    $0xdf,%al
+    outb    %al,$0x60
+    call check_a20
+    cmpl $1, %eax
+    je a20_activated
+    # More complex enable process.
     movw    $0x2403, %ax
     int     $0x15
     jb      fast_a20

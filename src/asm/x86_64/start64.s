@@ -16,43 +16,12 @@ You should have received a copy of the GNU Lesser General Public
 License along with this program.  If not, see
 <http://www.gnu.org/licenses/>.
 */
-.section .data
-    charpos: .int 0
-
 .section .text
-.global asmdie
-.code32
-asmdie:
-    movb $'E', %al
-    call __spitredchar
-    movb $'R', %al
-    call __spitredchar
-    movb $'R', %al
-    call __spitredchar
-    popl %eax
-    call __spitredchar
+.global start64
+.code64
+start64:
+    .extern cmain
+    callq cmain
+1:
     hlt
-
-.code32
-.global __spitredchar
-__spitredchar:
-    pushal
-    movl $0xb8000, %edx
-    movl charpos, %ecx
-    addl %ecx, %edx
-    movb $0x4f, 1(%edx)
-    movb %al, 0(%edx)
-    addl $2, charpos
-    popal
-    ret
-.global __spitgreenchar
-__spitgreenchar:
-    pushal
-    movl $0xb8000, %edx
-    movl charpos, %ecx
-    addl %ecx, %edx
-    movb $0x2f, 1(%edx)
-    movb %al, 0(%edx)
-    addl $2, charpos
-    popal
-    ret
+    jmp 1b

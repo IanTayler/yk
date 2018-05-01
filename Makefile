@@ -10,7 +10,7 @@ ISODIR := $(BASEBUILD)/iso
 
 CC := clang
 # Fix -march to be handled automatically.
-ASMFLAGS := --target=$(ARCH)-elf -march=x86-64 -c
+ASMFLAGS := --target=$(ARCH)-elf -march=x86-64 -c -Wall
 
 STAGE ?= debug
 
@@ -18,7 +18,7 @@ ifeq ($(STAGE),debug)
 ASMFLAGS := $(ASMFLAGS) -g
 endif
 
-CFLAGS := $(ASMFLAGS) -ffreestanding
+CFLAGS := $(ASMFLAGS) -ffreestanding -nostdlib
 
 ASM_SRCDIR := src/asm/$(ARCH)
 C_SRCDIR := src/
@@ -41,18 +41,18 @@ ISO := $(BASEBUILD)/$(OSNAME).iso
 linkscript := cfg/link.ld
 grubcfg := cfg/grub.cfg
 
-LD := ld
-LDFLAGS := -n -T $(linkscript)
+LD := x86_64-elf-ld
+LDFLAGS := -n -T $(linkscript) --gc-sections
 
 .PHONY: all clean iso run debug
 
 all: $(KERNEL)
 
 run: $(ISO)
-	qemu-system-x86_64 -cdrom $(ISO) -m 512
+	qemu-system-x86_64 -cdrom $(ISO) -m 512 $(QEMUEXTRA)
 
 debug: $(ISO)
-	qemu-system-x86_64 -cdrom $(ISO) -m 512 -s -S &
+	qemu-system-x86_64 -cdrom $(ISO) -m 512 $(QEMUEXTRA) -s -S &
 	gdb $(ISODIR)/boot/yk.bin -x debug.gdb
 
 $(KERNEL): $(linkscript) $(ALL_OBJECTS)

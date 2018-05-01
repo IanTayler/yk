@@ -8,17 +8,17 @@ SECTIONS {
         *(.multiboot)
     }
 
-    .text :
+    .text : ALIGN(4K)
     {
         *(.text)
     }
 
-    .data :
+    .data : ALIGN(4K)
     {
         *(.data)
     }
 
-    .rodata :
+    .rodata : ALIGN(4K)
     {
         *(.rodata)
     }

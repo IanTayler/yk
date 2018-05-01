@@ -1,7 +1,25 @@
+/*
+yk - yet another kernel for unix-like systems.
+Copyright (C) 2018 Ian G. Tayler <ian.g.tayler@gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this program.  If not, see
+<http://www.gnu.org/licenses/>.
+*/
 .section .text
 .extern __spitredchar
+.extern asmdie
 .global check_and_enable_a20
-.global check_a20
 .code32
 check_and_enable_a20:
     call check_a20
@@ -18,8 +36,6 @@ check_a20:
     cmpsl
     popal
     jne a20_activated
-    movb $'1', %al
-    call __spitredchar
     movl $0, %eax
     ret
 .code16
@@ -75,12 +91,11 @@ after_fast_a20:
     jne a20_inactive
 # The definition of spaghetti code. TODO: reorganize.
 a20_activated:
-    movb $'2', %al
-    call __spitredchar
     movl $1, %eax
     ret
 a20_inactive:
-    movb $'3', %al
-    call __spitredchar
+    pushl $'A'
+    call asmdie
+    popl %eax
     movl $0, %eax
     ret
